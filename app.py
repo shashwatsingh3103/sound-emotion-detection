@@ -1,10 +1,17 @@
-import sounddevice as sd
-import numpy as np
-import wave
 import os
+import wave
+import numpy as np
+import sounddevice as sd
+import soundfile as sf
 import librosa
-from keras.models import load_model
 import streamlit as st
+from keras.models import load_model
+
+# Specify the path to the PortAudio binary
+sd.default.device = 'portaudio'
+sd.default.device[0] = 'libportaudio.dylib'
+
+
 
 mo = load_model('yourmodel.h5')
 
@@ -53,19 +60,18 @@ def main():
 
 def record_audio():
     CHUNK = 1024
+    FORMAT = 'wav'
     CHANNELS = 2
     RATE = 44100
     RECORD_SECONDS = 5  # Adjust recording duration as needed
     OUTPUT_FILENAME = "recorded_audio.wav"
 
-    frames = []
+    st.write("Recording...")
 
-    with st.spinner('Recording in progress...'):
-        recording = sd.rec(int(RATE * RECORD_SECONDS), samplerate=RATE, channels=CHANNELS, dtype='int16')
-        sd.wait()  # Wait until recording is finished
-        frames.extend(recording)
+    frames = sd.rec(int(RATE * RECORD_SECONDS), samplerate=RATE, channels=CHANNELS, dtype='int16')
+    sd.wait()
 
-    st.success("Recording stopped.")
+    st.write("Recording stopped.")
 
     save_audio(frames, RATE, OUTPUT_FILENAME)
 
@@ -74,14 +80,9 @@ def save_audio(frames, rate, output_filename):
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
-    wf = wave.open(os.path.join(folder_path, output_filename), "wb")
-    wf.setnchannels(2)
-    wf.setsampwidth(2)  # 16-bit
-    wf.setframerate(rate)
-    wf.writeframes(frames.tobytes())
-    wf.close()
+    sf.write(os.path.join(folder_path, output_filename), frames, rate)
     st.success("Audio recorded and saved successfully!")
-    res = pred("backend_audio/recorded_audio.wav")
+    res = pred(os.path.join(folder_path, output_filename))
     st.write(res[0])
 
 if __name__ == "__main__":
