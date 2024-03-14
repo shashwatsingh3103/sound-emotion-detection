@@ -1,1 +1,3 @@
 libportaudio2
+portaudio-devel
+portaudio19-dev
