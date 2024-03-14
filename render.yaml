@@ -1,1 +1,1 @@
-buildCommand: cat apt.txt | xargs sudo apt-get install -y
+buildCommand: ./setup.sh && pip install -r requirements.txt
