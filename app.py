@@ -7,11 +7,7 @@ import librosa
 import streamlit as st
 from keras.models import load_model
 
-
-
-
-
-
+# Load the Keras model
 mo = load_model('yourmodel.h5')
 
 def fe(path):
@@ -79,10 +75,13 @@ def save_audio(frames, rate, output_filename):
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
-    sf.write(os.path.join(folder_path, output_filename), frames, rate)
-    st.success("Audio recorded and saved successfully!")
-    res = pred(os.path.join(folder_path, output_filename))
-    st.write(res[0])
+    try:
+        sf.write(os.path.join(folder_path, output_filename), frames, rate)
+        st.success("Audio recorded and saved successfully!")
+        res = pred(os.path.join(folder_path, output_filename))
+        st.write(res[0])
+    except Exception as e:
+        st.error(f"Error occurred while saving audio: {e}")
 
 if __name__ == "__main__":
     main()
