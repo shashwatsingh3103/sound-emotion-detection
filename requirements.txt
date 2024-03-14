@@ -1,11 +1,11 @@
-
+keras==2.15.0
 librosa==0.10.1
 numpy==1.26.4
 sounddevice==0.4.6
 streamlit==1.31.1
 
-tensorflow==2.8.0
-keras>=2.8.0rc0,<2.9
+tensorflow==2.15.0
+
 
 
 
