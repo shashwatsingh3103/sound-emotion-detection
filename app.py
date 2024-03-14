@@ -7,9 +7,8 @@ import librosa
 import streamlit as st
 from keras.models import load_model
 
-# Specify the path to the PortAudio binary
-sd.default.device = 'portaudio'
-sd.default.device[0] = 'libportaudio.dylib'
+
+
 
 
 
