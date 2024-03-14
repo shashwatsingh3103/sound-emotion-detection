@@ -1,10 +1,10 @@
-import streamlit as st
-import pyaudio
+import sounddevice as sd
+import numpy as np
 import wave
 import os
-from keras.models import load_model
-import numpy as np
 import librosa
+from keras.models import load_model
+import streamlit as st
 
 mo = load_model('yourmodel.h5')
 
@@ -53,31 +53,19 @@ def main():
 
 def record_audio():
     CHUNK = 1024
-    FORMAT = pyaudio.paInt16
     CHANNELS = 2
     RATE = 44100
-    RECORD_SECONDS = 7  # Adjust recording duration as needed
+    RECORD_SECONDS = 5  # Adjust recording duration as needed
     OUTPUT_FILENAME = "recorded_audio.wav"
-
-    audio = pyaudio.PyAudio()
-
-    stream = audio.open(
-        format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK
-    )
 
     frames = []
 
-    st.write("Recording...")
+    with st.spinner('Recording in progress...'):
+        recording = sd.rec(int(RATE * RECORD_SECONDS), samplerate=RATE, channels=CHANNELS, dtype='int16')
+        sd.wait()  # Wait until recording is finished
+        frames.extend(recording)
 
-    for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-        data = stream.read(CHUNK)
-        frames.append(data)
-
-    st.write("Recording stopped.")
-
-    stream.stop_stream()
-    stream.close()
-    audio.terminate()
+    st.success("Recording stopped.")
 
     save_audio(frames, RATE, OUTPUT_FILENAME)
 
@@ -88,9 +76,9 @@ def save_audio(frames, rate, output_filename):
 
     wf = wave.open(os.path.join(folder_path, output_filename), "wb")
     wf.setnchannels(2)
-    wf.setsampwidth(pyaudio.PyAudio().get_sample_size(pyaudio.paInt16))
+    wf.setsampwidth(2)  # 16-bit
     wf.setframerate(rate)
-    wf.writeframes(b"".join(frames))
+    wf.writeframes(frames.tobytes())
     wf.close()
     st.success("Audio recorded and saved successfully!")
     res = pred("backend_audio/recorded_audio.wav")
