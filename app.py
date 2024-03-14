@@ -1,13 +1,11 @@
 import os
 import wave
 import numpy as np
-import sounddevice as sd
-import soundfile as sf
+import pyaudio
 import librosa
 import streamlit as st
 from keras.models import load_model
 
-# Load the Keras model
 mo = load_model('yourmodel.h5')
 
 def fe(path):
@@ -55,38 +53,52 @@ def main():
 
 def record_audio():
     CHUNK = 1024
-    FORMAT = 'wav'
+    FORMAT = pyaudio.paInt16
     CHANNELS = 2
     RATE = 44100
     RECORD_SECONDS = 5  # Adjust recording duration as needed
     OUTPUT_FILENAME = "recorded_audio.wav"
 
+    audio = pyaudio.PyAudio()
+
+    stream = audio.open(format=FORMAT,
+                        channels=CHANNELS,
+                        rate=RATE,
+                        input=True,
+                        frames_per_buffer=CHUNK)
+
+    frames = []
+
     st.write("Recording...")
 
-    try:
-        # Specify audio input device by index
-        device_index = 0  # Change this to the index of your desired device
-        frames = sd.rec(int(RATE * RECORD_SECONDS), samplerate=RATE, channels=CHANNELS, dtype='int16', device=device_index)
-        sd.wait()
+    for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
+        data = stream.read(CHUNK)
+        frames.append(data)
 
-        st.write("Recording stopped.")
+    st.write("Recording stopped.")
 
-        save_audio(frames, RATE, OUTPUT_FILENAME)
-    except Exception as e:
-        st.error(f"Error occurred while recording audio: {e}")
+    stream.stop_stream()
+    stream.close()
+    audio.terminate()
+
+    save_audio(frames, RATE, OUTPUT_FILENAME)
 
 def save_audio(frames, rate, output_filename):
     folder_path = "backend_audio"
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
-    try:
-        sf.write(os.path.join(folder_path, output_filename), frames, rate)
-        st.success("Audio recorded and saved successfully!")
-        res = pred(os.path.join(folder_path, output_filename))
-        st.write(res[0])
-    except Exception as e:
-        st.error(f"Error occurred while saving audio: {e}")
+    wf = wave.open(os.path.join(folder_path, output_filename), 'wb')
+    wf.setnchannels(2)
+    wf.setsampwidth(pyaudio.PyAudio().get_sample_size(pyaudio.paInt16))
+    wf.setframerate(rate)
+    wf.writeframes(b''.join(frames))
+    wf.close()
+
+    st.success("Audio recorded and saved successfully!")
+    res = pred(os.path.join(folder_path, output_filename))
+    st.write(res[0])
 
 if __name__ == "__main__":
     main()
+
