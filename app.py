@@ -63,12 +63,17 @@ def record_audio():
 
     st.write("Recording...")
 
-    frames = sd.rec(int(RATE * RECORD_SECONDS), samplerate=RATE, channels=CHANNELS, dtype='int16')
-    sd.wait()
+    try:
+        # Specify audio input device by index
+        device_index = 0  # Change this to the index of your desired device
+        frames = sd.rec(int(RATE * RECORD_SECONDS), samplerate=RATE, channels=CHANNELS, dtype='int16', device=device_index)
+        sd.wait()
 
-    st.write("Recording stopped.")
+        st.write("Recording stopped.")
 
-    save_audio(frames, RATE, OUTPUT_FILENAME)
+        save_audio(frames, RATE, OUTPUT_FILENAME)
+    except Exception as e:
+        st.error(f"Error occurred while recording audio: {e}")
 
 def save_audio(frames, rate, output_filename):
     folder_path = "backend_audio"
