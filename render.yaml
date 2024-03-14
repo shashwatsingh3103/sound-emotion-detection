@@ -1,0 +1,1 @@
+buildCommand: cat apt.txt | xargs sudo apt-get install -y
