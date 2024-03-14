@@ -61,11 +61,24 @@ def record_audio():
 
     audio = pyaudio.PyAudio()
 
+    # Find and select the default input device
+    input_device_index = None
+    for i in range(audio.get_device_count()):
+        device_info = audio.get_device_info_by_index(i)
+        if device_info['maxInputChannels'] > 0:
+            input_device_index = i
+            break
+
+    if input_device_index is None:
+        st.error("No input audio device found.")
+        return
+
     stream = audio.open(format=FORMAT,
                         channels=CHANNELS,
                         rate=RATE,
                         input=True,
-                        frames_per_buffer=CHUNK)
+                        frames_per_buffer=CHUNK,
+                        input_device_index=input_device_index)
 
     frames = []
 
@@ -101,4 +114,3 @@ def save_audio(frames, rate, output_filename):
 
 if __name__ == "__main__":
     main()
-
