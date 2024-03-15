@@ -1,6 +1,5 @@
 keras==2.15.0
 librosa==0.10.1
 numpy==1.26.4
-PyAudio==0.2.13
 streamlit==1.31.1
-tensorflow==2.15.0
+streamlit_audiorec==0.1.3
