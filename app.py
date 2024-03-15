@@ -22,7 +22,7 @@ def pred(p):
 
     category_names = {
         0: "angry",
-        1: "normal",
+        1: "disgust",
         2: "fear",
         3: "happy",
         4: "neutral",
@@ -43,15 +43,26 @@ def main():
     
     st.image(microphone_image, width=100)  # Adjust width as needed
 
+    # Get available input devices
+    audio = pyaudio.PyAudio()
+    input_devices = []
+    for i in range(audio.get_device_count()):
+        device_info = audio.get_device_info_by_index(i)
+        if device_info['maxInputChannels'] > 0:
+            input_devices.append(device_info['name'])
+
+    # Add dropdown menu to select input device
+    selected_device = st.selectbox("Select Input Device", input_devices)
+
     # Add recording button
     if st.button("Start Recording"):
-        record_audio()
+        record_audio(selected_device)
 
     # Add "Record Again" button to refresh the website
     if st.button("Record Again"):
         st.experimental_rerun()
 
-def record_audio():
+def record_audio(selected_device):
     CHUNK = 1024
     FORMAT = pyaudio.paInt16
     CHANNELS = 2
@@ -61,16 +72,16 @@ def record_audio():
 
     audio = pyaudio.PyAudio()
 
-    # Find and select the default input device
+    # Find selected device index
     input_device_index = None
     for i in range(audio.get_device_count()):
         device_info = audio.get_device_info_by_index(i)
-        if device_info['maxInputChannels'] > 0:
+        if device_info['maxInputChannels'] > 0 and device_info['name'] == selected_device:
             input_device_index = i
             break
 
     if input_device_index is None:
-        st.error("No input audio device found.")
+        st.error("Selected input device not found.")
         return
 
     stream = audio.open(format=FORMAT,
