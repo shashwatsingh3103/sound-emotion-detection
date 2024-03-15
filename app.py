@@ -22,7 +22,7 @@ def pred(p):
 
     category_names = {
         0: "angry",
-        1: "disgust",
+        1: "normal",
         2: "fear",
         3: "happy",
         4: "neutral",
